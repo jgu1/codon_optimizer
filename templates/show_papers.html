@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <form action="{{ url_for('search') }}" method=post class=search>
+      <dl>
+        <dt>Search Term:
+        <dd><input type=text size=30 name=search_term_and>
+        <br>or<dd><input type=text size=30 name=search_term_or>
+        <br>not<dd><input type=text size=30 name=search_term_not>
+        <dd><input type=submit value=Search>
+      </dl>
+    </form>
+  {% endif %}
+  {% if papers %}
+    {{ pagination.info }}
+    {{ pagination.links }}  
+      <ul class=papers>
+        {% for paper in papers %}
+        <li><a href="{{ paper.link|safe}}"><h2>{{ paper.title }}</h2></a>
+        {% if paper.abstract %}
+        {{ paper.abstract|safe }}
+        {% else %}
+        no abstract found on original page for this paper
+        {% endif %}
+      {% else %}
+        <li><em>No Search Results</em>
+      {% endfor %}
+      </ul>
+    {{ pagination.links }}
+  {% else %}
+    Welcome!
+  {% endif %}
+{% endblock %}
