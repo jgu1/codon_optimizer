@@ -9,11 +9,12 @@ from contextlib import closing
 from time import sleep
 from flask.ext.paginate import Pagination
 import re
+import socket
 # configuration
 DATABASE = '/Users/jialianggu/WorkSpace/job_10_19/pubmed_search/pubmed_cache.db'
 DEBUG = True
 SECRET_KEY = 'development key'
-USERNAME_PASSWORD_DICT={'Jacot':'password','Ashley':'password','Kevin':'password'}
+USERNAME_PASSWORD_DICT={'jialiang':'password','hao':'password','jiashun':'password','erxin':'password','jun':'password','yanqiu':'password'}
 PAPER_PER_PAGE=10
 
 
@@ -58,7 +59,7 @@ def highlight_search_terms(abstract, search_term):
     terms = re.split('\+|AND|OR',search_term)
     terms = filter(bool,terms)
     for term in terms:
-        abstract = abstract.replace(term,'<mark>'+term+'</mark>')
+        abstract = abstract.replace(term,'<span>'+term+'</span>')
     return abstract
 
 @app.route('/')
@@ -144,6 +145,7 @@ def logout():
     return redirect(url_for('show_papers'))
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1',port=15213,threaded=True)
+    ip_for_current_machine = socket.gethostbyname(socket.gethostname())
+    app.run(host=ip_for_current_machine,port=55555,threaded=True)
 
 
