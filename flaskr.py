@@ -58,7 +58,7 @@ def highlight_search_terms(abstract, search_term):
     terms = re.split('\+|AND|OR',search_term)
     terms = filter(bool,terms)
     for term in terms:
-        abstract = abstract.replace(term,'<span>'+term+'</span>')
+        abstract = abstract.replace(term,'<mark>'+term+'</mark>')
     return abstract
 
 @app.route('/')
