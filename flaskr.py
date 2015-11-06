@@ -8,6 +8,7 @@ import esearch_fetch_parse
 from contextlib import closing
 from time import sleep
 from flask.ext.paginate import Pagination
+import re
 # configuration
 DATABASE = '/Users/jialianggu/WorkSpace/job_10_19/pubmed_search/pubmed_cache.db'
 DEBUG = True
@@ -53,6 +54,13 @@ def search_db_for_search_term(search_term):
     return papers
 
 
+def highlight_search_terms(abstract, search_term):
+    terms = re.split('\+|AND|OR',search_term)
+    terms = filter(bool,terms)
+    for term in terms:
+        abstract = abstract.replace(term,'<span>'+term+'</span>')
+    return abstract
+
 @app.route('/')
 def show_papers():
    
@@ -77,13 +85,17 @@ def show_papers():
 
     PAPER_PER_PAGE= app.config['PAPER_PER_PAGE'] 
     papers_for_this_page = all_papers[(page-1)*PAPER_PER_PAGE:page*PAPER_PER_PAGE] 
+    for paper in papers_for_this_page:
+        abstract = paper['abstract']
+        if abstract is not None:
+            paper['abstract'] = highlight_search_terms(abstract,search_term)
     pagination = Pagination(page=page, total=len(all_papers), per_page=PAPER_PER_PAGE, search=search, record_name='papers')
     #end pagination
     return render_template('show_papers.html',papers=papers_for_this_page,pagination=pagination)
 
 @app.route('/search', methods=['POST'])
 def search():
-    
+ 
     if not session.get('logged_in'):
         abort(401)
     
@@ -106,9 +118,8 @@ def search():
          ' where search_term="' + search_term +'"')
     cur = g.db.execute(sql_check_if_search_term_has_results_already)
     result_count = cur.fetchall()[0][0]
-#    if result_count < 1:
-#        sleep(50)
-    esearch_fetch_parse.Main(DATABASE,search_term)
+    if result_count < 1:
+        esearch_fetch_parse.Main(DATABASE,search_term)
 
     session['search_term'] = search_term
 
