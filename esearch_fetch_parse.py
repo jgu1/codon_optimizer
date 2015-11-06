@@ -37,6 +37,35 @@ def parse_efetch_xml(efetch_result_xml_string):
         # title
         article = medlineCitation.find('Article')
         title = article.find('ArticleTitle').text
+        
+         
+        # authors_str
+        authors_str = ''
+        authorList = article.find('AuthorList')
+        if authorList is not None:
+            for author in authorList:
+                curr_author = ''
+                lastname = author.find('LastName')
+                if lastname is not None:
+                    curr_author += lastname.text
+                forename = author.find('ForeName')
+                if forename is not None:
+                    curr_author += ' ' + forename.text + ', '
+                authors_str += curr_author
+            authors_str = authors_str[:-2] # remove the last ', '        
+        
+        # journal_title,publish_time_str
+        journal_title = ''
+        publish_time_str = ''
+        journal = article.find('Journal')
+        if journal is not None:
+            journal_title = journal.find('Title').text
+            journalIssue = journal.find('JournalIssue')
+            if journalIssue is not None:
+                pubDate = journalIssue.find('PubDate')
+                if pubDate is not None:
+                    publish_time_str = pubDate.find('Year').text
+ 
         # abstract_text
         whole_abstract_text = None
         abstract = article.find('Abstract')
@@ -53,7 +82,7 @@ def parse_efetch_xml(efetch_result_xml_string):
                 curr_keyword = keyword.text
                 keywords_str += curr_keyword + ', '
             keywords_str = keywords_str[:-2] # remove the last ', '
-        curr_paper = Pubmed_Article(title,PMID,whole_abstract_text,keywords_str)   
+        curr_paper = Pubmed_Article(title,PMID,authors_str,journal_title,publish_time_str,whole_abstract_text,keywords_str)   
         paper_list.append(curr_paper)
     return paper_list
 
@@ -73,7 +102,7 @@ def Main(DATABASE,search_term):
     num_papers = len(paper_list)
     term_id=dao.insert_one_search_term_into_table_search_terms(search_term,num_papers)   
     for paper in paper_list:
-        paper_id = dao.insert_one_paper_into_table_papers(paper.title,paper.link,paper.abstract,paper.keywords_str)
+        paper_id = dao.insert_one_paper_into_table_papers(paper.title,paper.link,paper.authors_str,paper.journal_title,paper.publish_time_str,paper.abstract,paper.keywords_str)
         dao.insert_one_relation_into_table_term_paper_relation(term_id,paper_id)    
     
 

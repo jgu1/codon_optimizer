@@ -46,10 +46,10 @@ def search_db_for_search_term(search_term):
     sql_fetch_all_papers_for_search_term = ('with paper_ids as' 
          ' (select paper_id from search_terms as S ,term_paper_relation as T' 
          ' where S.search_term="'+ search_term +'" and S.id = T.term_id)' 
-         ' select title,link,abstract,keywords_str from paper_ids, papers' 
+         ' select title,link,authors_str,journal_title,publish_time_str,abstract,keywords_str from paper_ids, papers' 
          ' where paper_ids.paper_id = papers.id;')
     cur = g.db.execute(sql_fetch_all_papers_for_search_term)
-    papers = [dict(title=row[0], link=row[1], abstract=row[2],keywords_str=row[3]) for row in cur.fetchall()]
+    papers = [dict(title=row[0], link=row[1], authors_str=row[2],journal_title=row[3],publish_time_str=row[4],abstract=row[5],keywords_str=row[6]) for row in cur.fetchall()]
     return papers
 
 

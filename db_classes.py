@@ -1,3 +1,4 @@
+import pdb
 import os,sqlite3
 from datetime import datetime
 class DAO(object):
@@ -14,14 +15,14 @@ class DAO(object):
         #get primary_key
         return cursor.lastrowid
 
-    def insert_one_paper_into_table_papers(self,title,link,abstract,keywords_str):
-        #insert 
-        sql_template = 'insert into papers (title,link,abstract,keywords_str) values(?,?,?,?)'
+    def insert_one_paper_into_table_papers(self,title,link,authors_str,journal_title,publish_time_str,abstract,keywords_str):
+        #insert
+        sql_template = 'insert into papers (title,link,authors_str,journal_title,publish_time_str,abstract,keywords_str) values(?,?,?,?,?,?,?)'
         try:
-            cursor = self.db.execute(sql_template,[title,link,abstract,keywords_str])
+            cursor = self.db.execute(sql_template,[title,link,authors_str,journal_title,publish_time_str,abstract,keywords_str])
        
         except sqlite3.ProgrammingError:
-            cursor = self.db.execute(sql_template,[unicode(title),unicode(link),unicode(abstract),unicode(keywords_str)])
+            cursor = self.db.execute(sql_template,[unicode(title),unicode(link),unicode(authors_str),unicode(journal_title),unicode(publish_time_str),unicode(abstract),unicode(keywords_str)])
             
         self.db.commit()
         #get primary_key

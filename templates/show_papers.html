@@ -17,11 +17,14 @@
       <ul class=papers>
         {% for paper in papers %}
         <li><a href="{{ paper.link|safe}}"><h2>{{ paper.title }}</h2></a>
+        <span>authors:</span>{{paper.authors_str|safe}}<br>
+        <span>journal:</span>{{paper.journal_title|safe}}<br>
+        <span>publish time:</span>{{paper.publish_time_str|safe}}<br>
         {% if paper.keywords_str %}
-        <span>keywords:</span>{{ paper.keywords_str|safe }}
+        <span>keywords:</span>{{ paper.keywords_str|safe }}<br>
         {% endif %}
         {% if paper.abstract %}
-        {{ paper.abstract|safe }}
+        <span>abstract:</span>{{ paper.abstract|safe }}
         {% else %}
         no abstract found on original page for this paper
         {% endif %}
