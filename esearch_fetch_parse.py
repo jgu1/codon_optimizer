@@ -32,18 +32,28 @@ def parse_efetch_xml(efetch_result_xml_string):
  
     for medlineCitation in root.iter('MedlineCitation'):
         curr_paper=None
+        # PMID
         PMID = medlineCitation.find('PMID').text
+        # title
         article = medlineCitation.find('Article')
         title = article.find('ArticleTitle').text
+        # abstract_text
+        whole_abstract_text = None
         abstract = article.find('Abstract')
         if abstract is not None:
             whole_abstract_text = ''
             for abstract_text in abstract:
                 whole_abstract_text += abstract_text.text
-            curr_paper = Pubmed_Article(title,PMID,whole_abstract_text)   
-        else:   # some paper page doesn't show abstract
-            curr_paper = Pubmed_Article(title,PMID,None)
-
+        # keywords_str
+        keywords_str= None
+        keywordList = medlineCitation.find('KeywordList')
+        if keywordList is not None:
+            keywords_str = ''
+            for keyword in keywordList.iter('Keyword'):
+                curr_keyword = keyword.text
+                keywords_str += curr_keyword + ', '
+            keywords_str = keywords_str[:-2] # remove the last ', '
+        curr_paper = Pubmed_Article(title,PMID,whole_abstract_text,keywords_str)   
         paper_list.append(curr_paper)
     return paper_list
 
@@ -63,7 +73,7 @@ def Main(DATABASE,search_term):
     num_papers = len(paper_list)
     term_id=dao.insert_one_search_term_into_table_search_terms(search_term,num_papers)   
     for paper in paper_list:
-        paper_id = dao.insert_one_paper_into_table_papers(paper.title,paper.link,paper.abstract)
+        paper_id = dao.insert_one_paper_into_table_papers(paper.title,paper.link,paper.abstract,paper.keywords_str)
         dao.insert_one_relation_into_table_term_paper_relation(term_id,paper_id)    
     
 

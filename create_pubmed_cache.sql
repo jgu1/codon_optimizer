@@ -17,6 +17,7 @@ create table papers (
   id integer primary key autoincrement,
   title text not null,
   link text not null,
-  abstract text
+  abstract text,
+  keywords_str text
 );
 

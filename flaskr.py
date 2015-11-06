@@ -9,7 +9,7 @@ from contextlib import closing
 from time import sleep
 from flask.ext.paginate import Pagination
 # configuration
-DATABASE = '/Users/jialianggu/WorkSpace/job_10_19/Entrez_version_again/pubmed_cache.db'
+DATABASE = '/Users/jialianggu/WorkSpace/job_10_19/pubmed_search/pubmed_cache.db'
 DEBUG = True
 SECRET_KEY = 'development key'
 USERNAME_PASSWORD_DICT={'Jacot':'password','Ashley':'password','Kevin':'password'}
@@ -46,11 +46,10 @@ def search_db_for_search_term(search_term):
     sql_fetch_all_papers_for_search_term = ('with paper_ids as' 
          ' (select paper_id from search_terms as S ,term_paper_relation as T' 
          ' where S.search_term="'+ search_term +'" and S.id = T.term_id)' 
-         ' select title,link,abstract from paper_ids, papers' 
+         ' select title,link,abstract,keywords_str from paper_ids, papers' 
          ' where paper_ids.paper_id = papers.id;')
-    #pdb.set_trace()     
     cur = g.db.execute(sql_fetch_all_papers_for_search_term)
-    papers = [dict(title=row[0], link=row[1], abstract=row[2]) for row in cur.fetchall()]
+    papers = [dict(title=row[0], link=row[1], abstract=row[2],keywords_str=row[3]) for row in cur.fetchall()]
     return papers
 
 
@@ -102,14 +101,14 @@ def search():
         search_term += '+OR+' + '+'.join(web_search_term_or.split())
     if not not web_search_term_not:
         search_term += '+NOT+'+ '+'.join(web_search_term_not.split())
-    pdb.set_trace()
+    #pdb.set_trace()
     sql_check_if_search_term_has_results_already = ('select count(1) from search_terms'
          ' where search_term="' + search_term +'"')
     cur = g.db.execute(sql_check_if_search_term_has_results_already)
     result_count = cur.fetchall()[0][0]
-    if result_count < 1:
-        sleep(50)
-        esearch_fetch_parse.Main(DATABASE,search_term)
+#    if result_count < 1:
+#        sleep(50)
+    esearch_fetch_parse.Main(DATABASE,search_term)
 
     session['search_term'] = search_term
 

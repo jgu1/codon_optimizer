@@ -14,14 +14,14 @@ class DAO(object):
         #get primary_key
         return cursor.lastrowid
 
-    def insert_one_paper_into_table_papers(self,title,link,abstract):
+    def insert_one_paper_into_table_papers(self,title,link,abstract,keywords_str):
         #insert 
-        sql_template = 'insert into papers (title,link,abstract) values(?,?,?)'
+        sql_template = 'insert into papers (title,link,abstract,keywords_str) values(?,?,?,?)'
         try:
-            cursor = self.db.execute(sql_template,[title,link,abstract])
+            cursor = self.db.execute(sql_template,[title,link,abstract,keywords_str])
        
         except sqlite3.ProgrammingError:
-            cursor = self.db.execute(sql_template,[unicode(title),unicode(link),unicode(abstract)])
+            cursor = self.db.execute(sql_template,[unicode(title),unicode(link),unicode(abstract),unicode(keywords_str)])
             
         self.db.commit()
         #get primary_key

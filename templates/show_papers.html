@@ -17,6 +17,9 @@
       <ul class=papers>
         {% for paper in papers %}
         <li><a href="{{ paper.link|safe}}"><h2>{{ paper.title }}</h2></a>
+        {% if paper.keywords_str %}
+        <span>keywords:</span>{{ paper.keywords_str|safe }}
+        {% endif %}
         {% if paper.abstract %}
         {{ paper.abstract|safe }}
         {% else %}
