@@ -14,7 +14,7 @@ import socket
 DATABASE = '/Users/jialianggu/WorkSpace/job_10_19/pubmed_search/pubmed_cache.db'
 DEBUG = True
 SECRET_KEY = 'development key'
-USERNAME_PASSWORD_DICT={'hao':'password','jiashun':'password','erxin':'password','jun':'password','yanqiu':'password','jialiang':'password'}
+USERNAME_PASSWORD_DICT={'hao':'genome','jiashun':'genome','erxin':'genome','jun':'genome','yanqiu':'genome','jialiang':'genome'}
 PAPER_PER_PAGE=10
 
 
