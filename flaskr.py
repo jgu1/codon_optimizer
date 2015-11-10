@@ -43,15 +43,25 @@ def teardown_request(exception):
     if db is not None:
         db.close()
 
+def fetch_db_for_search_terms(disease,genes_included,genes_excluded):
+    papers=[]
+    for gene in genes_included:
+        search_term = 'AND+' + disease + '+' + gene
+        if not not genes_excluded:
+            search_term += '+NOT+'+ '+'.join(genes_excluded)
 
-def search_db_for_search_term(search_term):
+        papers_for_curr_search_term = fetch_db_for_one_search_term(search_term)
+        papers += papers_for_curr_search_term
+    return papers
+
+def fetch_db_for_one_search_term(search_term):
     sql_fetch_all_papers_for_search_term = ('with paper_ids as' 
          ' (select paper_id from search_terms as S ,term_paper_relation as T' 
          ' where S.search_term="'+ search_term +'" and S.id = T.term_id)' 
          ' select title,link,authors_str,journal_title,publish_time_str,abstract,keywords_str from paper_ids, papers' 
          ' where paper_ids.paper_id = papers.id;')
     cur = g.db.execute(sql_fetch_all_papers_for_search_term)
-    papers = [dict(title=row[0], link=row[1], authors_str=row[2],journal_title=row[3],publish_time_str=row[4],abstract=row[5],keywords_str=row[6]) for row in cur.fetchall()]
+    papers = [dict(title=row[0], link=row[1], authors_str=row[2],journal_title=row[3],publish_time_str=row[4],abstract=row[5],keywords_str=row[6],search_term=search_term) for row in cur.fetchall()]
     return papers
 
 
@@ -59,40 +69,60 @@ def highlight_search_terms(abstract, search_term):
     terms = re.split('\+|AND|OR',search_term)
     terms = filter(bool,terms)
     for term in terms:
-        abstract = abstract.replace(term,'<span>'+term+'</span>')
+        abstract = abstract.replace(term,'<mark>'+term+'</mark>')
     return abstract
 
 @app.route('/')
 def show_papers():
    
-    if not 'search_term' in session:
+    if 'disease' not in session or 'genes_included' not in session:
         return render_template('show_papers.html')
+
  
-    search_term = session['search_term']
-    all_papers = search_db_for_search_term(search_term)
-   
+    disease = session['disease']
+    genes_included = session['genes_included']
+    genes_excluded = session['genes_excluded']
+
+    all_papers = fetch_db_for_search_terms(disease,genes_included,genes_excluded)
   
     #begin pagination 
-    search = False
-    q = request.args.get('q')
-    if q:
-        search = True
     try:
         page = int(request.args.get('page', 1))
     except ValueError:
         page = 1
 
-        
-
     PAPER_PER_PAGE= app.config['PAPER_PER_PAGE'] 
     papers_for_this_page = all_papers[(page-1)*PAPER_PER_PAGE:page*PAPER_PER_PAGE] 
+    
     for paper in papers_for_this_page:
         abstract = paper['abstract']
         if abstract is not None:
-            paper['abstract'] = highlight_search_terms(abstract,search_term)
-    pagination = Pagination(page=page, total=len(all_papers), per_page=PAPER_PER_PAGE, search=search, record_name='papers')
+            paper['abstract'] = highlight_search_terms(abstract,paper['search_term'])
+    
+    pagination = Pagination(page=page, total=len(all_papers), per_page=PAPER_PER_PAGE, record_name='papers')
     #end pagination
     return render_template('show_papers.html',papers=papers_for_this_page,pagination=pagination)
+
+
+def pop_db(disease,genes_included,genes_excluded):
+ 
+    for gene in genes_included:
+        search_term = 'AND+' + disease + '+' + gene
+        if not not genes_excluded:
+            search_term += '+NOT+'+ '+'.join(genes_excluded)
+        #pdb.set_trace()
+        sql_check_if_search_term_has_results_already = ('select count(1) from search_terms'
+             ' where search_term="' + search_term +'"')
+        cur = g.db.execute(sql_check_if_search_term_has_results_already)
+        result_count = cur.fetchall()[0][0]
+        if result_count < 1:
+            esearch_fetch_parse.Main(DATABASE,search_term)
+
+def parse_web_search_term(web_search_term_disease,web_search_term_genes_included,web_search_term_genes_excluded):
+    disease = web_search_term_disease.strip()
+    genes_included = web_search_term_genes_included.strip().split()
+    genes_excluded = web_search_term_genes_excluded.strip().split()
+    return disease,genes_included,genes_excluded
 
 @app.route('/search', methods=['POST'])
 def search():
@@ -100,29 +130,20 @@ def search():
     if not session.get('logged_in'):
         abort(401)
     
-    web_search_term_and = request.form['search_term_and'].strip()
-    web_search_term_or  = request.form['search_term_or'].strip()
-    web_search_term_not = request.form['search_term_not'].strip()
+    web_search_term_disease = request.form['disease']
+    web_search_term_genes_included  = request.form['genes_included']
+    web_search_term_genes_excluded = request.form['genes_excluded']
     
-    if web_search_term_and is None and web_search_term_or is None:
-        return render_template('show_papers.html')   
-    
-    search_term = ''
-    if not not web_search_term_and:
-        search_term += 'AND+'  + '+'.join(web_search_term_and.split())
-    if not not web_search_term_or:
-        search_term += '+OR+' + '+'.join(web_search_term_or.split())
-    if not not web_search_term_not:
-        search_term += '+NOT+'+ '+'.join(web_search_term_not.split())
-    #pdb.set_trace()
-    sql_check_if_search_term_has_results_already = ('select count(1) from search_terms'
-         ' where search_term="' + search_term +'"')
-    cur = g.db.execute(sql_check_if_search_term_has_results_already)
-    result_count = cur.fetchall()[0][0]
-    if result_count < 1:
-        esearch_fetch_parse.Main(DATABASE,search_term)
+    if web_search_term_disease is None or web_search_term_genes_included is None:
+        return render_template('show_papers.html')
+   
+    disease,genes_included,genes_excluded = parse_web_search_term(web_search_term_disease,web_search_term_genes_included,web_search_term_genes_excluded)
 
-    session['search_term'] = search_term
+    pop_db(disease,genes_included, genes_excluded)
+ 
+    session['disease']=disease
+    session['genes_included']=genes_included
+    session['genes_excluded']=genes_excluded
 
     return redirect(url_for('show_papers'))
 
