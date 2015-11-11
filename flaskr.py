@@ -10,6 +10,7 @@ from time import sleep
 from flask.ext.paginate import Pagination
 import re
 import socket
+from datetime import datetime,timedelta
 # configuration
 DATABASE = '/Users/jialianggu/WorkSpace/job_10_19/pubmed_search/pubmed_cache.db'
 DEBUG = True
@@ -67,6 +68,26 @@ def fetch_db_for_one_search_term(search_term):
     papers = [dict(title=row[0], link=row[1], authors_str=row[2],journal_title=row[3],publish_time_str=row[4],abstract=row[5],keywords_str=row[6],search_term=search_term) for row in cur.fetchall()]
     return papers
 
+def delete_db_for_one_search_term(search_term):
+    sql_delete_all_papers_for_search_term = ('with paper_ids as' 
+         ' (select paper_id from search_terms as S ,term_paper_relation as T' 
+         ' where S.search_term="'+ search_term +'" and S.id = T.term_id)' 
+         ' delete from papers' 
+         ' where papers.id in paper_ids;')
+    cur = g.db.execute(sql_delete_all_papers_for_search_term)
+    
+    sql_delete_all_term_paper_relations_for_search_term = ('with term_ids as'
+        ' (select term_id from term_paper_relation as T, search_terms as S'
+        ' where T.term_id = S.id and S.search_term="' + search_term + '") '
+        ' delete from term_paper_relation'
+        ' where term_paper_relation.term_id in term_ids ; ')
+    cur = g.db.execute(sql_delete_all_term_paper_relations_for_search_term)
+
+    sql_delete_search_terms_for_search_term = ('delete from search_terms'
+        ' where search_terms.search_term="' + search_term + '" ;'
+        )
+    cur = g.db.execute(sql_delete_search_terms_for_search_term)
+    g.db.commit()
 
 def highlight_search_terms(abstract, search_term):
     terms = re.split('\+|AND|OR',search_term)
@@ -116,11 +137,16 @@ def pop_db(disease,genes_included,genes_excluded):
         if not not genes_excluded:
             search_term += '+NOT+'+ '+'.join(genes_excluded)
         #pdb.set_trace()
-        sql_check_if_search_term_has_results_already = ('select count(1) from search_terms'
+        sql_check_if_search_term_has_results_already = ('select last_update from search_terms'
              ' where search_term="' + search_term +'"')
         cur = g.db.execute(sql_check_if_search_term_has_results_already)
-        result_count = cur.fetchall()[0][0]
-        if result_count < 1:
+        result = cur.fetchall()
+        if len(result) > 0:
+            time_delta = datetime.now() - datetime.strptime(result[0][0], "%Y-%m-%d %H:%M:%S.%f")
+            if time_delta.seconds > 60*60*4: # re-fetch if the record is older than 1 day
+                delete_db_for_one_search_term(search_term)
+                esearch_fetch_parse.Main(DATABASE,search_term)
+        else:
             esearch_fetch_parse.Main(DATABASE,search_term)
 
 def parse_web_search_term(web_search_term_disease,web_search_term_genes_included,web_search_term_genes_excluded):
@@ -143,6 +169,7 @@ def search():
         return render_template('show_papers.html')
    
     disease,genes_included,genes_excluded = parse_web_search_term(web_search_term_disease,web_search_term_genes_included,web_search_term_genes_excluded)
+
 
     pop_db(disease,genes_included, genes_excluded)
  
