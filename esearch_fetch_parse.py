@@ -64,7 +64,9 @@ def parse_efetch_xml(efetch_result_xml_string):
             if journalIssue is not None:
                 pubDate = journalIssue.find('PubDate')
                 if pubDate is not None:
-                    publish_time_str = pubDate.find('Year').text
+                    publish_time_year = pubDate.find('Year')
+                    if publish_time_year is not None:
+                        publish_time_str = publish_time_year.text
  
         # abstract_text
         whole_abstract_text = None

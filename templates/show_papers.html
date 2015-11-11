@@ -11,12 +11,14 @@
       </dl>
     </form>
 
-    <span>Matching Term Count:</span>
-    <ul class=choose_term>       
-       {% for key, value in count_dict.iteritems() %}
-        <li> <a href='/choose_term?gene={{ key }}'>{{key}}:{{value}}</a>
-       {% endfor %}
-    </ul>
+    {% if count_dict %}
+      <span>Matching Term Count:</span>
+      <ul class=choose_term>       
+         {% for key, value in count_dict.iteritems() %}
+          <li> <a href='/choose_term?gene={{ key }}'>{{key}}({{value}})</a>
+         {% endfor %}
+      </ul>
+    {% endif %}
 
     {% if papers %}
     {{ pagination.info }}
