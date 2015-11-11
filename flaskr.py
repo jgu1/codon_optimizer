@@ -46,6 +46,7 @@ def teardown_request(exception):
 def fetch_db_for_search_terms(disease,genes_included,genes_excluded):
     papers=[]
     count_dict={}
+    disease = '+'.join(disease.split())
     for gene in genes_included:
         search_term = 'AND+' + disease + '+' + gene
         if not not genes_excluded:
@@ -107,6 +108,8 @@ def show_papers():
 
 
 def pop_db(disease,genes_included,genes_excluded):
+    
+    disease='+'.join(disease.split())
  
     for gene in genes_included:
         search_term = 'AND+' + disease + '+' + gene
