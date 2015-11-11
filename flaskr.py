@@ -45,14 +45,16 @@ def teardown_request(exception):
 
 def fetch_db_for_search_terms(disease,genes_included,genes_excluded):
     papers=[]
+    count_dict={}
     for gene in genes_included:
         search_term = 'AND+' + disease + '+' + gene
         if not not genes_excluded:
             search_term += '+NOT+'+ '+'.join(genes_excluded)
 
         papers_for_curr_search_term = fetch_db_for_one_search_term(search_term)
+        count_dict[gene]=len(papers_for_curr_search_term)
         papers += papers_for_curr_search_term
-    return papers
+    return papers,count_dict
 
 def fetch_db_for_one_search_term(search_term):
     sql_fetch_all_papers_for_search_term = ('with paper_ids as' 
@@ -83,7 +85,7 @@ def show_papers():
     genes_included = session['genes_included']
     genes_excluded = session['genes_excluded']
 
-    all_papers = fetch_db_for_search_terms(disease,genes_included,genes_excluded)
+    all_papers,count_dict = fetch_db_for_search_terms(disease,genes_included,genes_excluded)
   
     #begin pagination 
     try:
@@ -101,7 +103,7 @@ def show_papers():
     
     pagination = Pagination(page=page, total=len(all_papers), per_page=PAPER_PER_PAGE, record_name='papers')
     #end pagination
-    return render_template('show_papers.html',papers=papers_for_this_page,pagination=pagination)
+    return render_template('show_papers.html',papers=papers_for_this_page,count_dict=count_dict,pagination=pagination)
 
 
 def pop_db(disease,genes_included,genes_excluded):
@@ -145,6 +147,12 @@ def search():
     session['genes_included']=genes_included
     session['genes_excluded']=genes_excluded
 
+    return redirect(url_for('show_papers'))
+
+@app.route('/choose_term', methods=['GET','POST'])
+def choose_term():
+    gene=request.args.get('gene', 1)
+    session['genes_included']=[gene]
     return redirect(url_for('show_papers'))
 
 @app.route('/login', methods=['GET', 'POST'])
