@@ -149,7 +149,7 @@ def search():
 
     return redirect(url_for('show_papers'))
 
-@app.route('/choose_term', methods=['GET','POST'])
+@app.route('/choose_term', methods=['GET'])
 def choose_term():
     gene=request.args.get('gene', 1)
     session['genes_included']=[gene]

@@ -11,15 +11,12 @@
       </dl>
     </form>
 
-    <form action="{{ url_for('choose_term') }}" method=post >  
       <table>
+       
        {% for key, value in count_dict.iteritems() %}
-         <tr>
-            <a href='/choose_term?gene={{ key }}'>{{key}}:{{value}}</a>
-         </tr>
+         <a href='/choose_term?gene={{ key }}'>{{key}}:{{value}}</a>
        {% endfor %}
       </table>
-    </form>
 
     {% if papers %}
     {{ pagination.info }}
