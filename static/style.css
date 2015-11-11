@@ -33,18 +33,32 @@ h2              { font-size: 1.2em; }
     font-size: 150%;
 }
 .pagination ul li {
-    padding-left: 2px;
+    padding-left: 1px;
+    padding-right: 1px;
     display:inline-block;
 }
 .pagination ul li:hover {
-    padding-left: 2px;
     display:inline-block;
     background:#6aa6ed;
     font-color:white
 }
 
 .pagination ul li a:hover {
-    padding-left: 2px;
+    display:inline-block;
+    background:#6aa6ed;
+    color:white
+}
+.choose_term li {
+    padding-left: 5px;
+    padding-right: 5px;
+    display:inline-block;
+}
+.choose_term li:hover {
+    display:inline-block;
+    background:#6aa6ed;
+    color:white
+}
+.choose_term li a:hover {
     display:inline-block;
     background:#6aa6ed;
     color:white
