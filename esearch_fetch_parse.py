@@ -10,6 +10,9 @@ def do_esearch(Entrez_head,search_term):
     response = urllib2.urlopen(Entrez_head + this_search)
     xml_esearch = response.read()
 
+    if 'No items found' in xml_esearch: #no need to continue
+        return None,None
+
     p_WebEnv = re.compile(r'<WebEnv>(.*)</WebEnv>')
     #pdb.set_trace()
     WebEnv = p_WebEnv.findall(xml_esearch)[0]
@@ -90,19 +93,19 @@ def parse_efetch_xml(efetch_result_xml_string):
         paper_list.append(curr_paper)
     return paper_list
 
-def Main(DATABASE,search_term):
+def Main(DATABASE,search_term,gene):
     #DATABASE = '/Users/jialianggu/WorkSpace/job_10_19/Entrez_version/pubmed_cache.db' 
     dao = DAO(DATABASE)  
     Entrez_head = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/'
    
-    WebEnv,queryKey = do_esearch(Entrez_head,search_term)  
-    xml_efetch = do_efetch(Entrez_head,WebEnv,queryKey) 
+    paper_list = []
 
-    paper_list = parse_efetch_xml(xml_efetch)
-   
-     
-    #pdb.set_trace()
-    
+    WebEnv,queryKey = do_esearch(Entrez_head,gene)
+    if WebEnv is not None and queryKey is not None: 
+        WebEnv,queryKey = do_esearch(Entrez_head,search_term)  
+        xml_efetch = do_efetch(Entrez_head,WebEnv,queryKey) 
+        paper_list = parse_efetch_xml(xml_efetch)       
+ 
     num_papers = len(paper_list)
     term_id=dao.insert_one_search_term_into_table_search_terms(search_term,num_papers)   
     for paper in paper_list:

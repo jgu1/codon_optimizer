@@ -145,9 +145,9 @@ def pop_db(disease,genes_included,genes_excluded):
             time_delta = datetime.now() - datetime.strptime(result[0][0], "%Y-%m-%d %H:%M:%S.%f")
             if time_delta.seconds > 60*60*4: # re-fetch if the record is older than 1 day
                 delete_db_for_one_search_term(search_term)
-                esearch_fetch_parse.Main(DATABASE,search_term)
+                esearch_fetch_parse.Main(DATABASE,search_term,gene)
         else:
-            esearch_fetch_parse.Main(DATABASE,search_term)
+            esearch_fetch_parse.Main(DATABASE,search_term,gene)
 
 def parse_web_search_term(web_search_term_disease,web_search_term_genes_included,web_search_term_genes_excluded):
     disease = web_search_term_disease.strip()
