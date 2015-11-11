@@ -37,7 +37,8 @@ def parse_efetch_xml(efetch_result_xml_string):
         # title
         article = medlineCitation.find('Article')
         title = article.find('ArticleTitle').text
-        
+        if title is None:   # some papers written in foreign language doesn't have a title
+            title = article.find('VernacularTitle').text 
          
         # authors_str
         authors_str = ''
@@ -74,7 +75,8 @@ def parse_efetch_xml(efetch_result_xml_string):
         if abstract is not None:
             whole_abstract_text = ''
             for abstract_text in abstract:
-                whole_abstract_text += abstract_text.text
+                if abstract_text is not None and abstract_text.text is not None:
+                    whole_abstract_text += abstract_text.text
         # keywords_str
         keywords_str= None
         keywordList = medlineCitation.find('KeywordList')
