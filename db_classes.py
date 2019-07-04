@@ -1,6 +1,7 @@
 import pdb
 import os,sqlite3
 from datetime import datetime
+from collections import defaultdict
 class DAO(object):
     db = None    
 
@@ -33,5 +34,32 @@ class DAO(object):
         self.db.execute(sql_template,[term_id,paper_id])
         self.db.commit()
 
+    # sort a list of synonymous codon by less->more GC counts
+    def _sort_Codon_list_by_GC(self,codon_list):
+        gc_count_list = []
+        for codon in codon_list:
+            gc_count = 0
+            for char in codon:
+                if char == 'C' or char == 'G':
+                    gc_count += 1   
+            gc_count_list.append(gc_count)
+        return [codon for gc_count,codon in sorted(   zip(gc_count_list,codon_list)  )]
+    
+    # generate a codon table that each codon list is sorted by less->more GC counts 
+    def generate_OneLetter_to_codon_dict(self):
+        sql_template = 'select OneLetter,Codon from codon;'
+        cur = self.db.execute(sql_template)
+        OneLetter_to_Codon_dict = defaultdict(list)
+        for fields in cur.fetchall():
+            OneLetter = fields[0]
+            Codon = fields[1]
+            OneLetter_to_Codon_dict[OneLetter].append(Codon)   
+        for k,v in OneLetter_to_Codon_dict.iteritems():
+            OneLetter_to_Codon_dict[k] = self._sort_Codon_list_by_GC(v) 
+        return OneLetter_to_Codon_dict
+
     def __init__(self,DATABASE):
         self.db = sqlite3.connect(DATABASE)
+        #OneLetter_to_Codon_dict = self.generate_OneLetter_to_codon_dict()
+        #pdb.set_trace()
+        #a = 1
