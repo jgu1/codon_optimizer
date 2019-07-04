@@ -20,7 +20,6 @@ def optimize_AA(AA_sequence,db):
         length += 3
         sequence[i*3:i*3+3] = codon
            
-         
     #pdb.set_trace()
     #a = 1
 
@@ -54,3 +53,21 @@ def count_GC_in_codon(codon):
             gc_count += 1
     return gc_count   
 
+def lookup_AA_nucleo(AA_sequence,db):
+    sql_template = 'select AA_sequence,nucleo_sequence from AA_nucleo where AA_sequence = "' + AA_sequence + '";'
+    cur = db.execute(sql_template)
+    result = None
+    for fields in cur.fetchall():
+        AA_sequence = fields[0]
+        nucleo_sequence = fields[1]
+        if nucleo_sequence is not None:
+            result = nucleo_sequence
+    return result
+
+def insert_AA_nucleo(AA_sequence,nucleo_sequence,db):
+    sql_template = 'insert into AA_nucleo (AA_sequence,nucleo_sequence) values (?,?)'
+    try:
+        db.cursor().execute(sql_template,[AA_sequence,nucleo_sequence])
+    except sqlite3.ProgrammingError:
+        db.cursor().execute(sql_template,[unicode(AA_sequence),unicode(nucleo_sequence)])
+    db.commit()

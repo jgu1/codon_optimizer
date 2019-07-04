@@ -13,7 +13,7 @@ import socket
 from datetime import datetime,timedelta
 from optimizer import *
 # configuration
-DATABASE = './pubmed_cache.db'
+DATABASE = './codon_optimizer.db'
 DEBUG = True
 SECRET_KEY = 'development key'
 USERNAME_PASSWORD_DICT={'Jake':'vl56','jialiang':'vl56'}
@@ -31,7 +31,7 @@ def connect_db():
     return db
 def init_db():
     with closing(connect_db()) as db:
-        with app.open_resource('create_pubmed_cache.sql', mode='r') as f:
+        with app.open_resource('create_codon_optimizer.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
 
@@ -105,31 +105,14 @@ def show_sequence():
 
     AA_sequence = session['AA_sequence'] 
     #pdb.set_trace() 
-    sequence = optimize_AA(AA_sequence,g.db)
-    #pdb.set_trace() 
-
-
-    #all_papers,count_dict = fetch_db_for_search_terms(disease,genes_included,genes_excluded)
-  
-    if False:
-        #begin pagination 
-        try:
-            page = int(request.args.get('page', 1))
-        except ValueError:
-            page = 1
-
-        PAPER_PER_PAGE= app.config['PAPER_PER_PAGE'] 
-        papers_for_this_page = all_papers[(page-1)*PAPER_PER_PAGE:page*PAPER_PER_PAGE] 
-        
-        for paper in papers_for_this_page:
-            abstract = paper['abstract']
-            if abstract is not None:
-                paper['abstract'] = highlight_search_terms(abstract,paper['search_term'])
-        
-        pagination = Pagination(page=page, total=len(all_papers), per_page=PAPER_PER_PAGE, record_name='papers')
-        #end pagination
-        return render_template('show_sequence.html',papers=papers_for_this_page,count_dict=count_dict,pagination=pagination)
-    return render_template('show_sequence.html',sequence = sequence)
+    nucleo_sequence_db = lookup_AA_nucleo(AA_sequence,g.db)
+    print nucleo_sequence_db
+    if nucleo_sequence_db is None:
+        nucleo_sequence = optimize_AA(AA_sequence,g.db)
+        insert_AA_nucleo(AA_sequence,nucleo_sequence,g.db)
+    else:
+        nucleo_sequence = nucleo_sequence_db
+    return render_template('show_sequence.html',sequence = nucleo_sequence)
 
 
 def pop_db(disease,genes_included,genes_excluded):
