@@ -99,12 +99,12 @@ def highlight_search_terms(abstract, search_term):
 
 @app.route('/')
 def show_sequence():
-   
-    if 'AA_sequence' not in session or 'genes_included' not in session:
+    pdb.set_trace() 
+     
+    if 'AA_sequence' not in session :
         return render_template('show_sequence.html')
 
     AA_sequence = session['AA_sequence'] 
-    #pdb.set_trace() 
     exist_warning = None
     nucleo_sequence_db,gc_content = lookup_AA_nucleo(AA_sequence,g.db)
     if nucleo_sequence_db is None:
@@ -152,7 +152,8 @@ def search_AA():
         abort(401)
     
     web_search_term_AA = request.form['AA']   
-     
+    
+    pdb.set_trace() 
     if web_search_term_AA is None:
         return render_template('show_sequence.html')
  
