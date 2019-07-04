@@ -22,8 +22,8 @@ def optimize_AA(AA_sequence,db):
            
     #pdb.set_trace()
     #a = 1
-
-    return ''.join(sequence)
+    gc_content = gc_count / length
+    return ''.join(sequence),gc_content
  
  # sort a list of synonymous codon by less->more GC counts
 def _sort_Codon_list_by_GC(codon_list):
@@ -54,20 +54,21 @@ def count_GC_in_codon(codon):
     return gc_count   
 
 def lookup_AA_nucleo(AA_sequence,db):
-    sql_template = 'select AA_sequence,nucleo_sequence from AA_nucleo where AA_sequence = "' + AA_sequence + '";'
+    sql_template = 'select AA_sequence,nucleo_sequence,gc_content from AA_nucleo where AA_sequence = "' + AA_sequence + '";'
     cur = db.execute(sql_template)
-    result = None
+    result = None;gc_content = None
     for fields in cur.fetchall():
         AA_sequence = fields[0]
         nucleo_sequence = fields[1]
+        gc_content = fields[2]
         if nucleo_sequence is not None:
             result = nucleo_sequence
-    return result
+    return result,gc_content
 
-def insert_AA_nucleo(AA_sequence,nucleo_sequence,db):
-    sql_template = 'insert into AA_nucleo (AA_sequence,nucleo_sequence) values (?,?)'
+def insert_AA_nucleo(AA_sequence,nucleo_sequence,gc_content,db):
+    sql_template = 'insert into AA_nucleo (AA_sequence,nucleo_sequence,gc_content) values (?,?,?)'
     try:
-        db.cursor().execute(sql_template,[AA_sequence,nucleo_sequence])
+        db.cursor().execute(sql_template,[AA_sequence,nucleo_sequence,gc_content])
     except sqlite3.ProgrammingError:
-        db.cursor().execute(sql_template,[unicode(AA_sequence),unicode(nucleo_sequence)])
+        db.cursor().execute(sql_template,[unicode(AA_sequence),unicode(nucleo_sequence),gc_content])
     db.commit()

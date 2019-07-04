@@ -105,14 +105,17 @@ def show_sequence():
 
     AA_sequence = session['AA_sequence'] 
     #pdb.set_trace() 
-    nucleo_sequence_db = lookup_AA_nucleo(AA_sequence,g.db)
-    print nucleo_sequence_db
+    exist_warning = None
+    nucleo_sequence_db,gc_content = lookup_AA_nucleo(AA_sequence,g.db)
     if nucleo_sequence_db is None:
-        nucleo_sequence = optimize_AA(AA_sequence,g.db)
-        insert_AA_nucleo(AA_sequence,nucleo_sequence,g.db)
+        nucleo_sequence,gc_content = optimize_AA(AA_sequence,g.db)
+        insert_AA_nucleo(AA_sequence,nucleo_sequence,gc_content,g.db)
     else:
         nucleo_sequence = nucleo_sequence_db
-    return render_template('show_sequence.html',sequence = nucleo_sequence)
+        gc_content = gc_content
+        exist_warning = 'Amino Acid Sequence "' + AA_sequence + '" has been queried'
+        
+    return render_template('show_sequence.html',sequence = nucleo_sequence,exist_warning = exist_warning,gc_content = gc_content)
 
 
 def pop_db(disease,genes_included,genes_excluded):

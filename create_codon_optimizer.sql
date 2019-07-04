@@ -2,7 +2,8 @@ drop table if exists AA_nucleo;
 create table AA_nucleo (
   id integer primary key autoincrement,
   AA_sequence text not null,
-  nucleo_sequence text not null
+  nucleo_sequence text not null,
+  GC_content real not null
 );
 
 drop table if exists codon;
