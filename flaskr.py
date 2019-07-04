@@ -12,10 +12,10 @@ import re
 import socket
 from datetime import datetime,timedelta
 # configuration
-DATABASE = '/Users/jialianggu/WorkSpace/job_10_19/pubmed_search/pubmed_cache.db'
+DATABASE = './pubmed_cache.db'
 DEBUG = True
 SECRET_KEY = 'development key'
-USERNAME_PASSWORD_DICT={'hao':'genome','jiashun':'genome','erxin':'genome','jun':'genome','yanqiu':'genome','jialiang':'genome'}
+USERNAME_PASSWORD_DICT={'Jake':'vl56','jialiang':'vl56'}
 PAPER_PER_PAGE=10
 
 
@@ -204,7 +204,8 @@ def logout():
     return redirect(url_for('show_papers'))
 
 if __name__ == '__main__':
-    ip_for_current_machine = socket.gethostbyname(socket.gethostname())
-    app.run(host=ip_for_current_machine,port=55555,threaded=True)
+    #ip_for_current_machine = socket.gethostbyname(socket.gethostname())
+    #app.run(host=ip_for_current_machine,port=15213,threaded=True)
+    app.run(port=15213,threaded=True)
 
 

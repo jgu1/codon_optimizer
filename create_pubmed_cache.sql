@@ -23,4 +23,4 @@ create table papers (
   abstract text,
   keywords_str text
 );
-
+.import ./codon.txt codon
